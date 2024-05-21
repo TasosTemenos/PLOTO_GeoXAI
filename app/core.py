@@ -1,9 +1,13 @@
-import rasterio
+# import rasterio
+import numpy as np
+import tensorflow as tf
 
 from utils import *
 from models import unet_model
 
-path = "C:/Users/USER/PycharmProjects/Test_tf_gpu/MMflood_train/PLOTO/rtc_gamma0_budapest/"
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+path = "./"
 
 # Open the VV band GeoTIFF file
 with rasterio.open(path+'VV/budapest_3.tif') as vv_src:
@@ -25,9 +29,6 @@ vv_band = stacked_image[:,:,0]  # VV band
 vh_band = stacked_image[:,:,1]  # VH band
 
 
-model_type = 'MM_flood_unet'
-results_path = 'C:/Users/USER/PycharmProjects/Test_tf_gpu/MMflood_train/MM_flood_results/'+ model_type+'/'
-model_path = results_path+'MMflood_unet'
 
 input_shape = (256,256,2)
 unet_model = unet_model(input_shape)
@@ -38,7 +39,7 @@ unet_model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accur
 
 # unet_model.save(results_path+'MMflood_unet.h5')
 
-unet_model =  tf.keras.models.load_model(results_path+'MMflood_unet.h5')
+unet_model =  tf.keras.models.load_model('./MMflood_unet.h5')
 
 # Define patch size
 patch_size = 256
@@ -65,7 +66,7 @@ for patch in patches:
     # Apply threshold to the predicted mask
     thresh_pred = (prediction > prediction.mean()).astype(int)
     # print("thresh pred : ", thresh_pred.shape, thresh_pred.min(), thresh_pred.max(), thresh_pred.dtype)
-    heatmap = generate_grad_cam(unet_model, patch)
+    # heatmap = generate_grad_cam(unet_model, patch)
     
     # Adjust layout
     predicted_patches.append(prediction)
