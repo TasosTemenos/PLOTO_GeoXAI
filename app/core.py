@@ -1,6 +1,9 @@
 # import rasterio
 import numpy as np
 import tensorflow as tf
+import rasterio
+from matplotlib import pyplot as plt
+
 
 from utils import *
 from models import unet_model
@@ -28,17 +31,7 @@ print(stacked_image.shape, stacked_image.min(), stacked_image.max(), stacked_ima
 vv_band = stacked_image[:,:,0]  # VV band
 vh_band = stacked_image[:,:,1]  # VH band
 
-
-
 input_shape = (256,256,2)
-unet_model = unet_model(input_shape)
-
-unet_model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-# unet_model.load_weights(model_path)
-
-# unet_model.save(results_path+'MMflood_unet.h5')
-
 unet_model =  tf.keras.models.load_model('./MMflood_unet.h5')
 
 # Define patch size
@@ -54,7 +47,7 @@ patches = split_image_into_patches(padded_stacked_image, patch_size)
 # Run prediction on patches
 predicted_patches = []
 
-
+print("Number of patches: ", len(patches))
 for patch in patches:
     # patch = bandeq(patch)
     # print(patch.shape, patch.min(), patch.max(), patch.dtype, patch.mean(axis = (0,1,2)), patch.std(axis=(0,1,2)))
@@ -70,7 +63,8 @@ for patch in patches:
     
     # Adjust layout
     predicted_patches.append(prediction)
-    
+
+print("End of inference")
 # Convert the list of predicted patches to a numpy array
 predicted_patches = np.array(predicted_patches)
 print(predicted_patches.shape)
@@ -82,3 +76,19 @@ print(reconstructed_image.shape)
 # Reconstruct the image from predicted patches
 reconstructed_original_image = reconstruct_image_from_patches(patches, (2560,2560,2))
 print(reconstructed_original_image.shape)
+
+
+plt.figure()
+plt.imshow(reconstructed_image, cmap='gray')
+plt.savefig('prediction.png')
+
+plt.figure()
+plt.imshow(reconstructed_original_image[:, :, 0], cmap='gray')
+plt.savefig('original.png')
+
+plt.figure()
+plt.imshow(reconstructed_original_image[:, :, 1], cmap='gray')
+plt.savefig('original1.png')
+print()
+print()
+print("End here")

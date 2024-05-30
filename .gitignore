@@ -1,4 +1,5 @@
-VH/
-VV/
+# VH/
+# VV/
 __pycache__
 *.yml
+*.png
